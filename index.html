@@ -145,7 +145,7 @@
 
     /* ── MARQUEE ── */
     .marquee{overflow:hidden;padding:14px 0;background:var(--glass);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;z-index:10}
-    .marquee-track{display:flex;gap:0;width:max-content;animation:marqueeRoll 30s linear infinite}
+    .marquee-track{display:flex;gap:0;width:max-content;animation:marqueeRoll 30s linear infinite;will-change:transform}
     .marquee:hover .marquee-track{animation-play-state:paused}
     .marquee-item{display:inline-flex;align-items:center;gap:10px;padding:0 28px;white-space:nowrap;font-family:var(--mono);font-size:.78rem;color:var(--muted);letter-spacing:.05em}
     .marquee-dot{color:var(--purple);opacity:.5;font-size:.5rem}
@@ -2172,13 +2172,14 @@
     if (typeof Lenis === 'undefined') return; /* lib failed to load — bail */
 
     const lenis = new Lenis({
-      duration       : 1.35,
+      duration       : 1.6,
       easing         : t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation    : 'vertical',
       smoothWheel    : true,
-      wheelMultiplier: 0.88,
-      touchMultiplier: 2.0,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 2.2,
       infinite       : false,
+      smoothTouch    : false,
     });
 
     window.__lenis = lenis;
@@ -2435,32 +2436,8 @@
       });
     }
 
-    /* ─────────────────── 6. MARQUEE VELOCITY SYNC ───────────────────── */
-    /* Faster scroll → marquee speeds up; decelerates back after 600ms */
-    let _lastY        = window.scrollY;
-    let _mBase        = 30;   /* base duration (seconds) */
-    let _mRevBase     = 38;
-    let _restoreTimer = null;
-    const _tracks = document.querySelectorAll('.marquee:not(.marquee-rev) .marquee-track');
-    const _revTracks = document.querySelectorAll('.marquee-rev .marquee-track');
-
-    window.addEventListener('scroll', () => {
-      const vel = Math.abs(window.scrollY - _lastY);
-      _lastY = window.scrollY;
-      if (vel < 2) return;
-
-      const boost   = Math.max(10, _mBase   - vel * 0.35);
-      const boostRev= Math.max(12, _mRevBase - vel * 0.25);
-
-      _tracks.forEach(t    => { t.style.animationDuration = boost    + 's'; });
-      _revTracks.forEach(t => { t.style.animationDuration = boostRev + 's'; });
-
-      clearTimeout(_restoreTimer);
-      _restoreTimer = setTimeout(() => {
-        _tracks.forEach(t    => { t.style.animationDuration = _mBase    + 's'; });
-        _revTracks.forEach(t => { t.style.animationDuration = _mRevBase + 's'; });
-      }, 700);
-    }, { passive: true });
+    /* marquee velocity sync removed — changing animationDuration mid-animation
+       causes browsers to jump/reset the position; constant speed is glitch-free */
 
     /* ──────────────────── 7. MAGNETIC CURSOR SCALE ──────────────────── */
     /* Amplify the custom cursor ring on card hover for a "spotlight" feel */
@@ -2519,10 +2496,7 @@
         events: {
           onReady: function(e){
             e.target.mute();
-            e.target.playVideo();
-            /* try to unmute immediately — works if user has already
-               interacted with the page (e.g. dismissed the loader) */
-            e.target.unMute();
+            e.target.playVideo(); /* starts muted — browsers always allow this */
           },
           onStateChange: function(e){
             if(e.data === 0 || e.data === 2) e.target.playVideo();
@@ -2531,6 +2505,24 @@
       });
     };
 
+    /* Unmute on the very first user gesture anywhere on the page.
+       Browsers require a gesture before audio can play; this catches
+       any click (loader dismiss, nav tap, scroll, anything). */
+    var unlocked = false;
+    function unlock(){
+      if(unlocked || muted) return;
+      unlocked = true;
+      if(ytPlayer && ytPlayer.unMute){ ytPlayer.unMute(); ytPlayer.playVideo(); }
+      document.removeEventListener('click',      unlock, true);
+      document.removeEventListener('keydown',    unlock, true);
+      document.removeEventListener('touchstart', unlock, true);
+      document.removeEventListener('scroll',     unlock, true);
+    }
+    document.addEventListener('click',      unlock, true);
+    document.addEventListener('keydown',    unlock, true);
+    document.addEventListener('touchstart', unlock, true);
+    document.addEventListener('scroll',     unlock, true);
+
     var btn = document.getElementById('vol-btn');
     btn.addEventListener('click', function(){
       if(!ytPlayer) return;
@@ -2538,6 +2530,7 @@
       if(muted){
         ytPlayer.mute();
       } else {
+        unlocked = true; /* manual unmute counts as the gesture */
         ytPlayer.unMute();
         ytPlayer.playVideo();
       }
