@@ -2754,16 +2754,16 @@
       n = Math.min(n + jump, 100);
       if (pctEl) pctEl.textContent = n + '%';
       if (barEl)  barEl.style.width  = n + '%';
-      if (n < 100) {
+      /*if (n < 100) {
         setTimeout(tickCounter, 38 + Math.random() * 28);
       } else {
         /* reached 100% — auto-enter after a brief pause so user can see it */
-        setTimeout(function () {
+        /*setTimeout(function () {
           var es = document.getElementById('entry-screen');
           if (es) es.click();
           /* directly unmute: synthetic click may not count as user gesture in
              some browsers, so we call the player API directly as a fallback */
-          setTimeout(function () {
+          /*setTimeout(function () {
             try {
               if (window.__ytPlayer && window.__ytPlayer.unMute) {
                 window.__ytPlayer.unMute();
