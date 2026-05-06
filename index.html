@@ -679,6 +679,19 @@
     /* ── SEC-TAG SCRAMBLE CURSOR ─────────────────────────── */
     .sec-tag{cursor:default}
 
+    /* ── ENTRY SCREEN ── */
+    #entry-screen{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;cursor:pointer;transition:opacity .7s ease,visibility .7s ease}
+    #entry-screen.gone{opacity:0;visibility:hidden;pointer-events:none}
+    .entry-name{font-family:var(--display);font-size:clamp(4rem,18vw,12rem);letter-spacing:.06em;background:linear-gradient(135deg,var(--purple),var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;animation:entryPulse 2.5s ease-in-out infinite alternate}
+    @keyframes entryPulse{from{filter:brightness(1)}to{filter:brightness(1.25) drop-shadow(0 0 40px rgba(124,58,237,.6))}}
+    .entry-cta{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);animation:entryBlink 1.6s ease-in-out infinite}
+    @keyframes entryBlink{0%,100%{opacity:.35}50%{opacity:.8}}
+    .entry-cta svg{animation:entryBounce 1.6s ease-in-out infinite}
+    @keyframes entryBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+    .entry-orb{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+    .entry-orb-1{width:500px;height:500px;background:var(--purple);opacity:.12;top:-100px;left:-100px}
+    .entry-orb-2{width:400px;height:400px;background:var(--pink);opacity:.1;bottom:-80px;right:-80px}
+
     /* ── BG MUSIC BUTTON ── */
     #vol-btn{position:fixed;bottom:28px;left:28px;z-index:9990;width:42px;height:42px;border-radius:50%;background:rgba(12,12,22,.82);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);cursor:none;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .22s,border-color .22s,color .22s,transform .25s var(--spring);box-shadow:0 4px 20px rgba(0,0,0,.5)}
     #vol-btn:hover{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.38);color:var(--text);transform:scale(1.1)}
@@ -688,6 +701,17 @@
   </style>
 </head>
 <body>
+
+  <!-- ── ENTRY SCREEN — click to enter + start music ── -->
+  <div id="entry-screen" role="button" aria-label="Click to enter">
+    <div class="entry-orb entry-orb-1"></div>
+    <div class="entry-orb entry-orb-2"></div>
+    <div class="entry-name">amudhan</div>
+    <div class="entry-cta">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      click anywhere to enter
+    </div>
+  </div>
 
   <div id="scroll-bar"></div>
   <!-- Lenis vertical progress bar (left edge, purple→cyan) -->
@@ -2497,9 +2521,8 @@
           onReady: function(e){
             e.target.mute();
             e.target.playVideo();
-            /* if user already scrolled/clicked before the player finished
-               loading, unlocked is already true — unmute immediately */
-            if(unlocked && !muted){ e.target.unMute(); }
+            /* entry screen was already clicked before player loaded */
+            if(entered){ e.target.unMute(); }
           },
           onStateChange: function(e){
             if(e.data === 0 || e.data === 2) e.target.playVideo();
@@ -2508,23 +2531,16 @@
       });
     };
 
-    /* Unmute on the very first user gesture anywhere on the page.
-       Browsers require a gesture before audio can play; this catches
-       any click (loader dismiss, nav tap, scroll, anything). */
-    var unlocked = false;
-    function unlock(){
-      if(unlocked || muted) return;
-      unlocked = true;
+    /* Entry screen — clicking it dismisses the overlay AND starts music */
+    var entered = false;
+    var entryEl = document.getElementById('entry-screen');
+    function enter(){
+      if(entered) return;
+      entered = true;
+      entryEl.classList.add('gone');
       if(ytPlayer && ytPlayer.unMute){ ytPlayer.unMute(); ytPlayer.playVideo(); }
-      document.removeEventListener('click',      unlock, true);
-      document.removeEventListener('keydown',    unlock, true);
-      document.removeEventListener('touchstart', unlock, true);
-      document.removeEventListener('scroll',     unlock, true);
     }
-    document.addEventListener('click',      unlock, true);
-    document.addEventListener('keydown',    unlock, true);
-    document.addEventListener('touchstart', unlock, true);
-    document.addEventListener('scroll',     unlock, true);
+    if(entryEl) entryEl.addEventListener('click', enter);
 
     var btn = document.getElementById('vol-btn');
     btn.addEventListener('click', function(){
@@ -2533,7 +2549,6 @@
       if(muted){
         ytPlayer.mute();
       } else {
-        unlocked = true; /* manual unmute counts as the gesture */
         ytPlayer.unMute();
         ytPlayer.playVideo();
       }
