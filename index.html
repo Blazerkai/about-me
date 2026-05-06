@@ -2496,7 +2496,10 @@
         events: {
           onReady: function(e){
             e.target.mute();
-            e.target.playVideo(); /* starts muted — browsers always allow this */
+            e.target.playVideo();
+            /* if user already scrolled/clicked before the player finished
+               loading, unlocked is already true — unmute immediately */
+            if(unlocked && !muted){ e.target.unMute(); }
           },
           onStateChange: function(e){
             if(e.data === 0 || e.data === 2) e.target.playVideo();
