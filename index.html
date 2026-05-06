@@ -659,9 +659,84 @@
     section:hover>.sec-deco-num{color:rgba(124,58,237,.038)}
     @media(max-width:600px){.sec-deco-num{font-size:clamp(4rem,16vw,7rem);right:10px;top:8px}}
 
-    /* ── HERO NAME HOVER GLOW PULSE ──────────────────────── */
-    .hero-name-svg{transition:filter .4s ease}
-    .hero-name-svg:hover{filter:drop-shadow(0 0 60px rgba(124,58,237,.7)) drop-shadow(0 0 120px rgba(236,72,153,.4))}
+    /* hero-name hover effects removed — gradient colour animation only */
+
+    /* ── ACADEMIC ACHIEVEMENT CARD ─────────────────────── */
+    .acard-acad { grid-column: span 3; }
+    @media(max-width:1024px) { .acard-acad { grid-column: span 2; } }
+    @media(max-width:768px)  { .acard-acad { grid-column: span 1; } }
+
+    .acad-row {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      margin-top: 18px;
+    }
+    .acad-score {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .acad-figure { line-height: 1; }
+    .acad-num {
+      font-family: var(--display);
+      font-size: clamp(4.5rem,9vw,7rem);
+      letter-spacing: .02em;
+      background: linear-gradient(135deg,var(--purple),var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .acad-unit {
+      font-family: var(--display);
+      font-size: clamp(2.5rem,5vw,3.8rem);
+      letter-spacing: .04em;
+      background: linear-gradient(135deg,var(--purple),var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .acad-lbl {
+      font-family: var(--mono);
+      font-size: .64rem;
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+    .acad-sep {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(to bottom,transparent,var(--border2),transparent);
+      flex-shrink: 0;
+    }
+    .acad-detail { flex: 1; min-width: 0; }
+    .acad-detail h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 9px;
+      letter-spacing: -.01em;
+    }
+    .acad-detail > p {
+      font-size: .875rem;
+      color: var(--text2);
+      line-height: 1.78;
+      margin-bottom: 16px;
+    }
+    .acad-detail > p em {
+      font-style: normal;
+      font-weight: 700;
+      background: linear-gradient(90deg,var(--purple),var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @media(max-width:600px) {
+      .acad-row { flex-direction: column; gap: 22px; }
+      .acad-sep { display: none; }
+    }
 
     /* ── STAGGER ANIMATION UTILITY ───────────────────────── */
     /* Used by GSAP — initial state set via JS fromTo */
@@ -698,6 +773,156 @@
     #vol-btn.on{background:rgba(124,58,237,.14);border-color:rgba(124,58,237,.32);color:var(--purple)}
     @media(max-width:600px){#vol-btn{bottom:16px;left:14px}}
 
+    /* NEW CODE START — Premium v4: cinematic entry, project overlays, cursor label */
+
+    /* ── PRE-ENTRY: freeze hero elements so GSAP can reveal them cinematically ── */
+    body:not(.is-entered) .hero-featured,
+    body:not(.is-entered) .hero-badge,
+    body:not(.is-entered) .hero-sub,
+    body:not(.is-entered) .hero-typed,
+    body:not(.is-entered) .hero-btns,
+    body:not(.is-entered) .hero-stats,
+    body:not(.is-entered) .hero-status,
+    body:not(.is-entered) .scroll-hint {
+      animation: none !important;
+      opacity: 0 !important;
+    }
+    /* freeze SVG name stroke draw — restarts automatically when is-entered added */
+    body:not(.is-entered) .hero-name-draw {
+      animation: none !important;
+      stroke-dashoffset: 10000 !important;
+      fill-opacity: 0 !important;
+    }
+
+    /* ── ENTRY SCREEN: animated progress counter ── */
+    .entry-pct {
+      position: absolute;
+      bottom: 38px;
+      right: 44px;
+      font-family: var(--display);
+      font-size: clamp(.85rem,2vw,1.25rem);
+      letter-spacing: .12em;
+      background: linear-gradient(135deg,var(--purple),var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      animation: fadeUp .5s .5s ease both;
+      user-select: none;
+      pointer-events: none;
+    }
+    /* thin progress bar at very bottom of entry screen */
+    .entry-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));
+      box-shadow: 0 0 12px rgba(124,58,237,.6);
+      transition: width .06s linear;
+    }
+
+    /* ── PROJECT CARDS: hover-reveal gradient overlay ── */
+    .pcard-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      /* gradient from transparent top → dark bottom */
+      background: linear-gradient(175deg, transparent 20%, rgba(7,7,15,.88) 65%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 18px 22px 20px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .38s cubic-bezier(0.16,1,0.3,1),
+                  transform .38s cubic-bezier(0.16,1,0.3,1);
+      z-index: 5;
+      pointer-events: none;
+      will-change: opacity, transform;
+    }
+    .pcard:hover .pcard-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .pov-eyebrow {
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .pov-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .pov-name {
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+    /* small arrow circle that rotates on hover */
+    .pov-arrow {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      background: rgba(124,58,237,.15);
+      border: 1px solid rgba(124,58,237,.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .78rem;
+      color: var(--purple);
+      transition: transform .28s var(--spring), background .22s;
+    }
+    .pcard:hover .pov-arrow {
+      transform: rotate(-45deg) scale(1.12);
+      background: rgba(124,58,237,.28);
+      border-color: rgba(124,58,237,.55);
+    }
+    @media(max-width:768px) { .pcard-overlay { display: none; } }
+
+    /* ── CURSOR LABEL: appears near cursor on project/social card hover ── */
+    #cur-label {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9997;
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .1em;
+      color: rgba(255,255,255,.9);
+      background: rgba(7,7,15,.88);
+      border: 1px solid rgba(124,58,237,.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+      backdrop-filter: blur(14px);
+      white-space: nowrap;
+      /* offset to the right of cursor */
+      transform: translate(18px,-50%);
+      opacity: 0;
+      transition: opacity .18s ease;
+      will-change: transform, opacity;
+    }
+    body.show-cur-label #cur-label { opacity: 1; }
+    @media(max-width:768px) { #cur-label { display: none; } }
+
+    /* ── HERO: magnetic glow pulse on scroll-hint ── */
+    .scroll-hint { will-change: opacity, transform; }
+
+    /* ── SKILLS: stag pop-in already GSAP-driven, add will-change ── */
+    .stag { will-change: transform, opacity; }
+
+    /* ── CONNECT: ensure soc cards are GPU-composited for smooth GSAP ── */
+    #connect .soc { will-change: transform, opacity; }
+
+    /* NEW CODE END */
+
   </style>
 </head>
 <body>
@@ -711,6 +936,10 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       click anywhere to enter
     </div>
+    <!-- NEW CODE START: loading percentage counter + progress bar -->
+    <div class="entry-pct" id="entry-pct" aria-hidden="true">0%</div>
+    <div class="entry-bar"  id="entry-bar"  aria-hidden="true"></div>
+    <!-- NEW CODE END -->
   </div>
 
   <div id="scroll-bar"></div>
@@ -732,6 +961,9 @@
   <div id="cur"      aria-hidden="true"></div>
   <div id="cur-ring" aria-hidden="true"></div>
   <div id="cur-dot"  aria-hidden="true"></div>
+  <!-- NEW CODE START: cursor text label (shows on project/social card hover) -->
+  <div id="cur-label" aria-hidden="true"></div>
+  <!-- NEW CODE END -->
 
   <div id="konami-flash" aria-hidden="true"></div>
 
@@ -1111,6 +1343,15 @@
             <a href="https://blazerkai.github.io/about-me/" class="pbtn pbtn-demo" target="_blank" rel="noopener">↗ Live Site</a>
             <a href="https://github.com/Blazerkai" class="pbtn pbtn-gh" target="_blank" rel="noopener">⌥ GitHub</a>
           </div>
+          <!-- NEW CODE START: hover reveal overlay -->
+          <div class="pcard-overlay" aria-hidden="true">
+            <p class="pov-eyebrow">explore project</p>
+            <div class="pov-main">
+              <span class="pov-name">Personal Portfolio</span>
+              <span class="pov-arrow">↗</span>
+            </div>
+          </div>
+          <!-- NEW CODE END -->
         </div>
 
         <div class="pcard reveal-r d2" data-a="green">
@@ -1137,6 +1378,15 @@
             <a href="https://blazerkai.github.io/prokick-ai/" class="pbtn pbtn-demo" target="_blank" rel="noopener">↗ Live Site</a>
             <a href="https://github.com/Blazerkai" class="pbtn pbtn-gh" target="_blank" rel="noopener">⌥ GitHub</a>
           </div>
+          <!-- NEW CODE START: hover reveal overlay -->
+          <div class="pcard-overlay" aria-hidden="true">
+            <p class="pov-eyebrow">explore project</p>
+            <div class="pov-main">
+              <span class="pov-name">ProKick AI</span>
+              <span class="pov-arrow">↗</span>
+            </div>
+          </div>
+          <!-- NEW CODE END -->
         </div>
 
         <div class="pcard reveal-l d3" data-a="cyan">
@@ -1162,6 +1412,15 @@
           <div class="pcard-btns">
             <a href="https://hustlance.com" class="pbtn pbtn-demo" target="_blank" rel="noopener">↗ Live Site</a>
           </div>
+          <!-- NEW CODE START: hover reveal overlay -->
+          <div class="pcard-overlay" aria-hidden="true">
+            <p class="pov-eyebrow">explore project</p>
+            <div class="pov-main">
+              <span class="pov-name">Hustlance</span>
+              <span class="pov-arrow">↗</span>
+            </div>
+          </div>
+          <!-- NEW CODE END -->
         </div>
 
         <div class="pcard reveal-r d4" data-a="pink">
@@ -1187,6 +1446,15 @@
           <div class="pcard-btns">
             <a href="http://pavalamcrackers.com" class="pbtn pbtn-demo" target="_blank" rel="noopener">↗ Live Site</a>
           </div>
+          <!-- NEW CODE START: hover reveal overlay -->
+          <div class="pcard-overlay" aria-hidden="true">
+            <p class="pov-eyebrow">explore project</p>
+            <div class="pov-main">
+              <span class="pov-name">Pavalam Crackers</span>
+              <span class="pov-arrow">↗</span>
+            </div>
+          </div>
+          <!-- NEW CODE END -->
         </div>
 
       </div>
@@ -2436,30 +2704,6 @@
       });
     });
 
-    /* ──────────────────── 5. HERO NAME HOVER SCRAMBLE ───────────────── */
-    /* Hover the SVG name → letters scramble then resolve back */
-    const heroNameEl = document.querySelector('.hero-name-draw');
-    const heroSvgEl  = document.querySelector('.hero-name-svg');
-    if (heroNameEl && heroSvgEl) {
-      let hTid = null;
-      heroSvgEl.addEventListener('mouseenter', () => {
-        const orig = 'amudhan';
-        let step = 0;
-        clearInterval(hTid);
-        hTid = setInterval(() => {
-          heroNameEl.textContent = orig.split('').map((ch, i) =>
-            i < step ? ch : GLYPHS[Math.floor(Math.random() * GLYPHS.length)].toLowerCase()
-          ).join('');
-          step++;
-          if (step > orig.length) { clearInterval(hTid); heroNameEl.textContent = 'amudhan'; }
-        }, 36);
-      });
-      heroSvgEl.addEventListener('mouseleave', () => {
-        clearInterval(hTid);
-        heroNameEl.textContent = 'amudhan';
-      });
-    }
-
     /* marquee velocity sync removed — changing animationDuration mid-animation
        causes browsers to jump/reset the position; constant speed is glitch-free */
 
@@ -2485,6 +2729,217 @@
 
   })();
   </script>
+
+  <!-- NEW CODE START ── PREMIUM v4: cinematic hero, loading counter, cursor label ── -->
+  <script>
+  (function () {
+    'use strict';
+
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ─────────────────────────────────────────────────────────────
+       1. ENTRY SCREEN: animated loading percentage counter
+          Counts from 0 → 97 organically, then jumps to 100% on click.
+       ───────────────────────────────────────────────────────────── */
+    var pctEl  = document.getElementById('entry-pct');
+    var barEl  = document.getElementById('entry-bar');
+    var n = 0, entryDone = false;
+
+    function tickCounter() {
+      if (entryDone) return;
+      /* organic-feeling: occasional bigger jumps, mostly +1 */
+      var jump = Math.random() > 0.65
+        ? Math.floor(Math.random() * 5) + 2
+        : 1;
+      n = Math.min(n + jump, 100);
+      if (pctEl) pctEl.textContent = n + '%';
+      if (barEl)  barEl.style.width  = n + '%';
+      if (n < 100) {
+        setTimeout(tickCounter, 38 + Math.random() * 28);
+      } else {
+        /* reached 100% — auto-enter after a brief pause so user can see it */
+        setTimeout(function () {
+          var es = document.getElementById('entry-screen');
+          if (es) es.click();
+          /* directly unmute: synthetic click may not count as user gesture in
+             some browsers, so we call the player API directly as a fallback */
+          setTimeout(function () {
+            try {
+              if (window.__ytPlayer && window.__ytPlayer.unMute) {
+                window.__ytPlayer.unMute();
+                window.__ytPlayer.playVideo();
+              }
+            } catch (e) {}
+          }, 150);
+        }, 420);
+      }
+    }
+    setTimeout(tickCounter, 350); /* small delay so animation is visible */
+
+    window.addEventListener('portfolio-entered', function () {
+      entryDone = true;
+      /* keep bar/counter in sync if user clicked before counter hit 100 */
+      if (pctEl) pctEl.textContent = '100%';
+      if (barEl)  barEl.style.width  = '100%';
+    });
+
+    /* ─────────────────────────────────────────────────────────────
+       2. POST-ENTRY HERO: cinematic GSAP timeline
+          Reveals each hero element with a smooth staggered entrance
+          after the entry screen starts fading (0.7s CSS transition).
+          The SVG name stroke-draw animation restarts automatically
+          when body gets .is-entered (CSS freeze lifted).
+       ───────────────────────────────────────────────────────────── */
+    window.addEventListener('portfolio-entered', function () {
+      if (prefersReduced || typeof gsap === 'undefined') return;
+
+      /* Immediately lock hero elements at opacity:0 via inline style,
+         so the un-frozen CSS animations can't flash before GSAP takes over. */
+      var heroTargets = [
+        '.hero-featured', '.hero-badge',
+        '.hero-sub', '.hero-typed',
+        '.hero-btns', '.hero-stats',
+        '.hero-status', '.scroll-hint'
+      ];
+      heroTargets.forEach(function (sel) {
+        var el = document.querySelector(sel);
+        if (el) el.style.opacity = '0';
+      });
+
+      /* Timeline: starts 0.15s after click (entry screen still mid-fade).
+         Each element cascades in with a silky power3.out ease. */
+      gsap.timeline({ delay: 0.15, defaults: { ease: 'power3.out' } })
+        /* "currently building" pill — slides down from above */
+        .fromTo('.hero-featured',
+          { opacity: 0, y: -16 },
+          { opacity: 1, y: 0, duration: 0.65 }, 0.04)
+        /* badge pill — slides down */
+        .fromTo('.hero-badge',
+          { opacity: 0, y: -12 },
+          { opacity: 1, y: 0, duration: 0.65 }, 0.16)
+        /* subtitle — rises up */
+        .fromTo('.hero-sub',
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.75 }, 0.52)
+        /* typed text — rises up */
+        .fromTo('.hero-typed',
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.65 }, 0.64)
+        /* CTA buttons — rises up */
+        .fromTo('.hero-btns',
+          { opacity: 0, y: 22 },
+          { opacity: 1, y: 0, duration: 0.75 }, 0.75)
+        /* mini stats bar — rises up */
+        .fromTo('.hero-stats',
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.75 }, 0.86)
+        /* status pill — rises up */
+        .fromTo('.hero-status',
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.65 }, 0.96)
+        /* scroll hint — rises last */
+        .fromTo('.scroll-hint',
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.65 }, 1.08);
+    });
+
+    /* ─────────────────────────────────────────────────────────────
+       3. CURSOR LABEL: shows contextual text near cursor
+          — "view project →" on project cards
+          — "visit →"        on social/connect cards
+       ───────────────────────────────────────────────────────────── */
+    var curLabel = document.getElementById('cur-label');
+    if (curLabel) {
+      /* Follow the cursor precisely */
+      document.addEventListener('mousemove', function (e) {
+        curLabel.style.left = e.clientX + 'px';
+        curLabel.style.top  = e.clientY + 'px';
+      }, { passive: true });
+
+      /* Project cards */
+      document.querySelectorAll('.pcard').forEach(function (card) {
+        card.addEventListener('mouseenter', function () {
+          curLabel.textContent = 'view project →';
+          document.body.classList.add('show-cur-label');
+        });
+        card.addEventListener('mouseleave', function () {
+          document.body.classList.remove('show-cur-label');
+        });
+      });
+
+      /* Social / connect cards */
+      document.querySelectorAll('.soc').forEach(function (card) {
+        card.addEventListener('mouseenter', function () {
+          curLabel.textContent = 'visit →';
+          document.body.classList.add('show-cur-label');
+        });
+        card.addEventListener('mouseleave', function () {
+          document.body.classList.remove('show-cur-label');
+        });
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       4. GSAP SCROLL EXTRAS: animate elements that don't already
+          have a .reveal class or existing GSAP handler.
+          Skips: anything with .reveal/.reveal-l/.reveal-r (those
+          are handled by the CSS IntersectionObserver system).
+       ───────────────────────────────────────────────────────────── */
+    if (!prefersReduced && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+
+      /* Football section: text block slides in from right (it has .reveal-r
+         already, but we enhance with a scrub-based horizontal parallax) */
+      gsap.to('.ft-content h3', {
+        backgroundPositionX: '100%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#football',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 2,
+        },
+      });
+
+      /* Zoom-band text: additional subtle rotation scrub for depth */
+      gsap.to('#ztxt', {
+        rotate: 1.5,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.zoom-band',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.2,
+        },
+      });
+
+      /* Project grid: subtle perspective tilt as you scroll past */
+      gsap.to('.proj-grid', {
+        y: -18,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#projects',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.8,
+        },
+      });
+
+      /* Skills grid: mild upward drift */
+      gsap.to('.skills-grid', {
+        y: -12,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#skills',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.5,
+        },
+      });
+    }
+
+  })();
+  </script>
+  <!-- NEW CODE END ── PREMIUM v4 ── -->
 
   <!-- ── BG MUSIC ── -->
   <div style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;pointer-events:none" aria-hidden="true">
@@ -2521,7 +2976,8 @@
           onReady: function(e){
             e.target.mute();
             e.target.playVideo();
-            /* entry screen was already clicked before player loaded */
+            window.__ytPlayer = e.target; /* expose for auto-enter music path */
+            /* unmute immediately if entry already happened (auto or manual click) */
             if(entered){ e.target.unMute(); }
           },
           onStateChange: function(e){
@@ -2538,6 +2994,10 @@
       if(entered) return;
       entered = true;
       entryEl.classList.add('gone');
+      /* NEW CODE START: add is-entered so hero GSAP freeze lifts, then fire event */
+      document.body.classList.add('is-entered');
+      window.dispatchEvent(new CustomEvent('portfolio-entered'));
+      /* NEW CODE END */
       if(ytPlayer && ytPlayer.unMute){ ytPlayer.unMute(); ytPlayer.playVideo(); }
     }
     if(entryEl) entryEl.addEventListener('click', enter);
