@@ -794,34 +794,6 @@
       fill-opacity: 0 !important;
     }
 
-    /* ── ENTRY SCREEN: animated progress counter ── */
-    .entry-pct {
-      position: absolute;
-      bottom: 38px;
-      right: 44px;
-      font-family: var(--display);
-      font-size: clamp(.85rem,2vw,1.25rem);
-      letter-spacing: .12em;
-      background: linear-gradient(135deg,var(--purple),var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      opacity: 0;
-      animation: fadeUp .5s .5s ease both;
-      user-select: none;
-      pointer-events: none;
-    }
-    /* thin progress bar at very bottom of entry screen */
-    .entry-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      width: 0%;
-      background: linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));
-      box-shadow: 0 0 12px rgba(124,58,237,.6);
-      transition: width .06s linear;
-    }
 
     /* ── PROJECT CARDS: hover-reveal gradient overlay ── */
     .pcard-overlay {
@@ -936,10 +908,6 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       click anywhere to enter
     </div>
-    <!-- NEW CODE START: loading percentage counter + progress bar -->
-    <!-- <div class="entry-pct" id="entry-pct" aria-hidden="true">0%</div>
-    <div class="entry-bar"  id="entry-bar"  aria-hidden="true"></div> -->
-    <!-- NEW CODE END -->
   </div>
 
   <div id="scroll-bar"></div>
@@ -1140,7 +1108,7 @@
 
         <!-- Card 3 -->
         <div class="acard" data-aidx="2">
-          <span class="acard-counter">3 / 6</span>
+          <span class="acard-counter">3 / 7</span>
           <span class="bi">📅</span>
           <h3>My Age, Right Now</h3>
           <div class="age-disp">
@@ -1149,10 +1117,6 @@
             <div class="age-unit"><span class="age-val" id="age-m">9</span><span class="age-lbl">months</span></div>
             <span class="age-sep">·</span>
             <div class="age-unit"><span class="age-val" id="age-d">22</span><span class="age-lbl">days</span></div>
-          </div>
-          <div class="age-achieve">
-            <span class="age-achieve-icon">🎓</span>
-            <span>Grade 10 Boards — <em>95%</em></span>
           </div>
         </div>
 
@@ -1187,7 +1151,7 @@
 
         <!-- Card 6 -->
         <div class="acard" data-aidx="5" data-aclr="cyan">
-          <span class="acard-counter">6 / 6</span>
+          <span class="acard-counter">6 / 7</span>
           <span class="bi">🚀</span>
           <h3>Currently Working On</h3>
           <div class="cl-list">
@@ -1209,11 +1173,40 @@
           </div>
         </div>
 
+        <!-- Card 7: Academic Achievement — full-width spanning card -->
+        <div class="acard acard-acad" data-aidx="6" data-aclr="purple">
+          <span class="acard-counter">7 / 7</span>
+          <span class="bi">🎓</span>
+          <h3>Academic Achievement</h3>
+          <div class="acad-row">
+            <div class="acad-score">
+              <div class="acad-figure">
+                <span class="acad-num">95</span><span class="acad-unit">%</span>
+              </div>
+              <span class="acad-lbl">Grade 10 · CBSE Boards</span>
+            </div>
+            <div class="acad-sep" aria-hidden="true"></div>
+            <div class="acad-detail">
+              <h4>Grade 10 — CBSE Board Examinations</h4>
+              <p>Scored <em>95% overall</em> — while training every week on the pitch and building full-stack projects at the same time. Football-brained logic works in the classroom too.</p>
+              <div class="tags">
+                <span class="tag t-b">📐 Mathematics</span>
+                <span class="tag t-c">🔬 Science</span>
+                <span class="tag t-p">💬 English</span>
+                <span class="tag t-y">🤖 AI</span>
+                <span class="tag t-g">🌍 Social Studies</span>
+                <span class="tag t-o">🇮🇳 Hindi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /about-stage -->
 
       <!-- Progress dots -->
       <div class="about-dots" id="adots">
         <div class="adot on"></div>
+        <div class="adot"></div>
         <div class="adot"></div>
         <div class="adot"></div>
         <div class="adot"></div>
@@ -2737,51 +2730,6 @@
 
     var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    /* ─────────────────────────────────────────────────────────────
-       1. ENTRY SCREEN: animated loading percentage counter
-          Counts from 0 → 97 organically, then jumps to 100% on click.
-       ───────────────────────────────────────────────────────────── */
-    var pctEl  = document.getElementById('entry-pct');
-    var barEl  = document.getElementById('entry-bar');
-    var n = 0, entryDone = false;
-
-    function tickCounter() {
-      if (entryDone) return;
-      /* organic-feeling: occasional bigger jumps, mostly +1 */
-      var jump = Math.random() > 0.65
-        ? Math.floor(Math.random() * 5) + 2
-        : 1;
-      n = Math.min(n + jump, 100);
-      if (pctEl) pctEl.textContent = n + '%';
-      if (barEl)  barEl.style.width  = n + '%';
-      /*if (n < 100) {
-        setTimeout(tickCounter, 38 + Math.random() * 28);
-      } else {
-        /* reached 100% — auto-enter after a brief pause so user can see it */
-        /*setTimeout(function () {
-          var es = document.getElementById('entry-screen');
-          if (es) es.click();
-          /* directly unmute: synthetic click may not count as user gesture in
-             some browsers, so we call the player API directly as a fallback */
-          /*setTimeout(function () {
-            try {
-              if (window.__ytPlayer && window.__ytPlayer.unMute) {
-                window.__ytPlayer.unMute();
-                window.__ytPlayer.playVideo();
-              }
-            } catch (e) {}
-          }, 150);
-        }, 420);
-      }
-    }
-    setTimeout(tickCounter, 350); /* small delay so animation is visible */
-
-    window.addEventListener('portfolio-entered', function () {
-      entryDone = true;
-      /* keep bar/counter in sync if user clicked before counter hit 100 */
-      if (pctEl) pctEl.textContent = '100%';
-      if (barEl)  barEl.style.width  = '100%';
-    });
 
     /* ─────────────────────────────────────────────────────────────
        2. POST-ENTRY HERO: cinematic GSAP timeline
@@ -2897,18 +2845,6 @@
           start: 'top bottom',
           end: 'bottom top',
           scrub: 2,
-        },
-      });
-
-      /* Zoom-band text: additional subtle rotation scrub for depth */
-      gsap.to('#ztxt', {
-        rotate: 1.5,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.zoom-band',
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1.2,
         },
       });
 
